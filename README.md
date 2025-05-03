@@ -17,7 +17,7 @@ This is a personal project built in my spare time for learning purposes.
 
 * <https://api.ipify.org/?format=json> - IP search
 * [IP Location Finder by KeyCDN](https://tools.keycdn.com/geo)
-* <https://darksky.net/dev> - Forecast based on latitude and longitude
+* Powered by <a href="https://www.weatherapi.com/" title="Weather API">WeatherAPI.com</a>
 
 #### Features
 
