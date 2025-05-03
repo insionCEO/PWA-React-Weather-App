@@ -20,6 +20,7 @@ const setupDate = (unixTimestamp) => {
 
 export default function (unixTimestamp, locale = 'en-US') {
   const finalDate = setupDate(unixTimestamp);
+
   const year = finalDate.getFullYear();
   const weekDay = finalDate.getDay();
   let month = finalDate.getMonth() + 1;

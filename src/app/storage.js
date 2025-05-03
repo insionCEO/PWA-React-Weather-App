@@ -1,6 +1,4 @@
 import IpGeoLocation from '../api/ipGeoLocation';
-import ForeCastAPI from '../api/foreCastAPI';
-import ReverseGeoLocation from '../api/reverseGeoLocation';
 import IpFetcher from '../api/ipfetcher';
 import timeConvert, { addLeadingZero } from '../helpers/time';
 import icons from '../helpers/icons';
@@ -11,43 +9,46 @@ export default class Storage {
   constructor() {
     this.ipFetcher = new IpFetcher();
     this.ipGeoLocation = new IpGeoLocation();
-    this.foreCastAPI = new ForeCastAPI(process.env.REACT_APP_DARK_SKY_API_CODE);
-    this.reverseGeoLocation = new ReverseGeoLocation();
     this.data = { ...initialState };
     this.currentDate = new Date();
   }
 
   update() {
     if (!this.ipGeoLocation.data.error) {
+      const nextHours = this.ipGeoLocation.data.forecast.forecastday[0].hour
+        .filter(item => (item.time_epoch > this.currentDate.getTime() / 1000));
+
       this.data = {
-        latitude: this.foreCastAPI.data.latitude,
-        longitude: this.foreCastAPI.data.longitude,
+        latitude: this.ipGeoLocation.data.location.lat,
+        longitude: this.ipGeoLocation.data.location.lon,
         lastUpdate: this.getLastUpdate(this.currentDate),
         currentCondition: {
-          ...initialState,
-          location: this.ipGeoLocation.data.city,
-          date: timeConvert(this.foreCastAPI.data.currently.time).localeDateString,
-          temperature: Math.round(this.foreCastAPI.data.currently.temperature),
-          weather: this.foreCastAPI.data.currently.summary
+          location: this.ipGeoLocation.data.location.name,
+          date: timeConvert(this.ipGeoLocation.data.location.localtime_epoch).localeDateString,
+          temperature: Math.round(this.ipGeoLocation.data.current.temp_c),
+          weather: this.ipGeoLocation.data.current.condition.text,
         },
-        foreCastHourly: this.foreCastAPI.data.hourly.data.slice(0, 5).map((item) => ({
-          time: timeConvert(item.time).hours,
-          rainProbability: Math.round(item.precipProbability * 100),
-          temperature: Math.round(item.temperature),
-          icon: icons(item.icon).id
+        foreCastHourly: nextHours.slice(0, 6).map((item) => ({
+          time: timeConvert(item.time_epoch).hours,
+          rainProbability: item.chance_of_rain,
+          temperature: Math.floor(item.temp_c),
+          icon: item.is_day
+            ? `svg/day/${icons(item.condition.code)}.png`	
+            : `svg/night/${icons(item.condition.code)}.png`,
         })),
-        foreCastDaily: this.foreCastAPI.data.daily.data.slice(1, 6).map(item => ({
-          weekDay: weekdays(timeConvert(item.time).weekDay),
-          rainProbability: Math.round(item.precipProbability * 100),
-          icon: icons(item.icon).id,
+        foreCastDaily: this.ipGeoLocation.data.forecast.forecastday.slice(1, 6).map(item => ({
+          weekDay: weekdays(timeConvert(item.date_epoch).weekDay),
+          rainProbability: item.day.daily_chance_of_rain,
+          icon: item.day.is_day
+          ? `svg/day/${icons(item.day.condition.code)}.png`	
+          : `svg/night/${icons(item.day.condition.code)}.png`,
           temperature: {
-            max: Math.round(item.temperatureMax),
-            min: Math.round(item.temperatureMin)
+            max: Math.round(item.day.maxtemp_c),
+            min: Math.round(item.day.mintemp_c)
           }
         }))
       }
     }
-
   }
 
   getLastUpdate(currentDate) {
@@ -72,21 +73,8 @@ export default class Storage {
     } else {
       await this.ipGeoLocation.fetch(this.ipFetcher.ip);
 
-      if (this.ipGeoLocation.data.city) {
+      if (this.ipGeoLocation.data.location.name) {
         localStorage.setItem('geoLocation', JSON.stringify(this.ipGeoLocation.data));
-      }
-    }
-  }
-
-  async _updateForecast() {
-    if (localStorage.getItem('forecast')) {
-      this.foreCastAPI.data = JSON.parse(localStorage.getItem('forecast'));
-    } else {
-      await this.foreCastAPI.fetch(this.ipGeoLocation.data.latitude, this.ipGeoLocation.data.longitude);
-
-      if (this.foreCastAPI.data.timezone) {
-        localStorage.setItem('lastupdate', new Date().toString());
-        localStorage.setItem('forecast', JSON.stringify(this.foreCastAPI.data));
       }
     }
   }
@@ -97,7 +85,6 @@ export default class Storage {
     }
     await this._updateIP();
     await this._updateGeoLocation();
-    await this._updateForecast();
 
     this.update();
   }
@@ -112,21 +99,15 @@ export default class Storage {
     return (min > 58 && sec > 0);
   }
 
-  async getLocation(latitude, longitude) {
-    this.foreCastAPI.data.latitude = latitude;
-    this.foreCastAPI.data.longitude = longitude;
+  async getLocation() {
     this.data.lastUpdate = this.getLastUpdate(this.currentDate);
 
     if (this.updateCache()) {
       localStorage.clear();
-
-      await this.reverseGeoLocation.fetch(latitude, longitude);
-      await this.foreCastAPI.fetch(latitude, longitude);
-
       localStorage.setItem('lastupdate', this.currentDate.toString());
-      localStorage.setItem('forecast', JSON.stringify(this.foreCastAPI.data));
 
-      this.ipGeoLocation.data.city = this.reverseGeoLocation.data[0].city || this.reverseGeoLocation.data[0].state;
+      await this._updateIP();
+      await this._updateGeoLocation();
 
       this.update();
     }

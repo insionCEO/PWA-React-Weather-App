@@ -2,7 +2,6 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import rAFTimeout from '../../helpers/rAFTimeout';
 import './index.scss';
-import { icons } from '../../helpers/icons';
 
 class Forecast extends PureComponent {
   constructor() {
@@ -13,16 +12,14 @@ class Forecast extends PureComponent {
 
   animate() {
     rAFTimeout(() => this.forecast.current.classList.add('animate-in'), 100);
-
     rAFTimeout(() => this.title.classList.add('animate-in'), 200);
-
     rAFTimeout(() => this.icon.classList.add('animate-in'), 250);
 
     rAFTimeout(() => {
       this.temperature.map(elment => elment.classList.add('animate-in'));
     }, 350);
 
-    rAFTimeout(() => this.rain.classList.add('animate-in'), 400);
+    rAFTimeout(() => this.rain.classList.add('animate-in'), 300);
   }
 
   componentDidMount() {
@@ -38,7 +35,7 @@ class Forecast extends PureComponent {
     return (
       <div ref={this.forecast} className="forecast" data-id={this.props.id}>
         <span className="forecast__title">{this.props.title}</span>
-        <img className="forecast__icon" alt="icon" src={icons[this.props.icon]} />
+        <img className="forecast__icon" alt="icon" src={this.props.icon} />
 
         {this.props.children}
       </div>
