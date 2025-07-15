@@ -2,11 +2,11 @@
 
 This project was bootstrapped with [Create React App](https://github.com/facebookincubator/create-react-app)
 
-<https://weather.iondrimbafilho.me/>
+<https://weather.insionCEOfilho.me/>
 
-![build](https://github.com/iondrimba/react-weather-app/workflows/build/badge.svg?branch=main)
-![deploy](https://github.com/iondrimba/react-weather-app/workflows/deploy/badge.svg?branch=main)
-[![Test Coverage](https://api.codeclimate.com/v1/badges/8cd55ce66e034c44f03a/test_coverage)](https://codeclimate.com/github/iondrimba/react-weather-app/test_coverage)
+![build](https://github.com/insionCEO/react-weather-app/workflows/build/badge.svg?branch=main)
+![deploy](https://github.com/insionCEO/react-weather-app/workflows/deploy/badge.svg?branch=main)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/8cd55ce66e034c44f03a/test_coverage)](https://codeclimate.com/github/insionCEO/react-weather-app/test_coverage)
 
 
 ## About
